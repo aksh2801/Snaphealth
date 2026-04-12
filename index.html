@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TradeX — Stock Trading Platform</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <button class="theme-toggle" id="theme-toggle-auth" onclick="toggleTheme()" title="Toggle light/dark mode">
+    <span class="theme-icon">☀</span>
+  </button>
+
+  <div id="auth-screen" class="screen active">
+    <div class="auth-bg">
+      <div class="grid-overlay"></div>
+      <div class="ticker-tape" id="ticker-tape"></div>
+    </div>
+
+    <div class="auth-container">
+      <div class="auth-brand">
+        <span class="brand-icon">◈</span>
+        <span class="brand-name">TradeX</span>
+      </div>
+      <p class="auth-tagline">Your edge in the market.</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+        <button class="auth-tab" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <div id="login-form" class="auth-form">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text" id="login-username" placeholder="Enter username" autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="Enter password" />
+        </div>
+        <div id="login-error" class="auth-error hidden"></div>
+        <button class="btn-primary" onclick="handleLogin()">LOGIN →</button>
+        <p class="auth-hint">Demo: use any saved credentials or register first.</p>
+      </div>
+
+      <div id="register-form" class="auth-form hidden">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text" id="reg-username" placeholder="Choose a username" autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Choose a password" />
+        </div>
+        <div id="reg-error" class="auth-error hidden"></div>
+        <button class="btn-primary" onclick="handleRegister()">CREATE ACCOUNT →</button>
+        <p class="auth-hint">New account starts with $10,000 balance.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-screen" class="screen">
+
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">◈</span>
+        <span class="brand-name">TradeX</span>
+      </div>
+
+      <div class="nav-links">
+        <button class="nav-link active" onclick="showPage('dashboard')" id="nav-dashboard">
+          <span class="nav-icon">▦</span> Dashboard
+        </button>
+        <button class="nav-link" onclick="showPage('portfolio')" id="nav-portfolio">
+          <span class="nav-icon">◎</span> Portfolio
+        </button>
+        <button class="nav-link" onclick="showPage('history')" id="nav-history">
+          <span class="nav-icon">≡</span> History
+        </button>
+        <button class="nav-link theme-nav-btn" onclick="toggleTheme()" id="theme-toggle-nav" title="Toggle theme">
+          <span class="nav-icon theme-icon">☀</span> <span class="theme-label">Light Mode</span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">T</div>
+          <div>
+            <div class="user-name" id="sidebar-username">Trader</div>
+            <div class="user-balance" id="sidebar-balance">$10,000.00</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="handleLogout()">⏻</button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Market <span class="accent">Dashboard</span></h1>
+            <p class="page-subtitle">Live prices · Updates every 5 seconds</p>
+          </div>
+          <div class="balance-card">
+            <span class="balance-label">Cash Balance</span>
+            <span class="balance-amount" id="dash-balance">$10,000.00</span>
+          </div>
+        </div>
+
+        <div class="market-bar" id="market-bar"></div>
+
+        <div class="stocks-grid" id="stocks-grid"></div>
+      </div>
+
+      <div id="page-portfolio" class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">My <span class="accent">Portfolio</span></h1>
+            <p class="page-subtitle">Your holdings and performance</p>
+          </div>
+          <div class="balance-card">
+            <span class="balance-label">Cash Balance</span>
+            <span class="balance-amount" id="port-balance">$10,000.00</span>
+          </div>
+        </div>
+
+        <div class="stats-row" id="stats-row">
+          <div class="stat-card">
+            <span class="stat-label">Total Portfolio Value</span>
+            <span class="stat-value" id="stat-total">$0.00</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Invested Value</span>
+            <span class="stat-value" id="stat-invested">$0.00</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Profit / Loss</span>
+            <span class="stat-value" id="stat-pnl">$0.00</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Positions</span>
+            <span class="stat-value" id="stat-positions">0</span>
+          </div>
+        </div>
+
+        <div class="portfolio-layout">
+          <div class="chart-card">
+            <h3 class="card-title">Portfolio Allocation</h3>
+            <div class="chart-wrapper">
+              <canvas id="portfolio-chart"></canvas>
+              <div class="chart-empty" id="chart-empty">No holdings yet.<br/>Buy stocks to see your allocation.</div>
+            </div>
+          </div>
+
+          <div class="holdings-card">
+            <h3 class="card-title">Holdings</h3>
+            <div id="holdings-table-wrapper">
+              <table class="holdings-table" id="holdings-table">
+                <thead>
+                  <tr>
+                    <th>Stock</th>
+                    <th>Qty</th>
+                    <th>Avg Buy</th>
+                    <th>Current</th>
+                    <th>Value</th>
+                    <th>P&L</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="holdings-body"></tbody>
+              </table>
+              <div class="empty-state" id="holdings-empty">
+                <span class="empty-icon">◎</span>
+                <p>Your portfolio is empty.</p>
+                <p class="empty-sub">Head to the Dashboard to buy your first stock!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-history" class="page">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Trade <span class="accent">History</span></h1>
+            <p class="page-subtitle">All your executed trades, newest first</p>
+          </div>
+          <div class="history-controls">
+            <div class="filter-group">
+              <button class="filter-btn active" data-filter="all" onclick="filterHistory('all', this)">All</button>
+              <button class="filter-btn" data-filter="buy" onclick="filterHistory('buy', this)">Buys</button>
+              <button class="filter-btn" data-filter="sell" onclick="filterHistory('sell', this)">Sells</button>
+            </div>
+            <div class="history-search-wrap">
+              <span class="search-icon">⌕</span>
+              <input type="text" id="history-search" placeholder="Search ticker…" oninput="renderHistory()" />
+            </div>
+            <button class="btn-clear-history" onclick="clearHistory()">Clear All</button>
+          </div>
+        </div>
+
+        <div class="history-summary" id="history-summary">
+          <div class="hs-card">
+            <span class="hs-label">Total Trades</span>
+            <span class="hs-value" id="hs-total">0</span>
+          </div>
+          <div class="hs-card">
+            <span class="hs-label">Total Bought</span>
+            <span class="hs-value" id="hs-bought">$0.00</span>
+          </div>
+          <div class="hs-card">
+            <span class="hs-label">Total Sold</span>
+            <span class="hs-value" id="hs-sold">$0.00</span>
+          </div>
+          <div class="hs-card">
+            <span class="hs-label">Realised P&L</span>
+            <span class="hs-value" id="hs-pnl">$0.00</span>
+          </div>
+          <div class="hs-card">
+            <span class="hs-label">Most Traded</span>
+            <span class="hs-value" id="hs-most">—</span>
+          </div>
+        </div>
+
+        <div class="history-chart-card">
+          <h3 class="card-title">Trade Volume Over Time</h3>
+          <div class="history-chart-wrap">
+            <canvas id="history-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="history-table-card">
+          <div class="history-table-header">
+            <h3 class="card-title" style="margin:0">Transactions</h3>
+            <span class="history-count" id="history-count">0 trades</span>
+          </div>
+          <div class="history-table-wrap">
+            <table class="holdings-table history-table" id="history-table">
+              <thead>
+                <tr>
+                  <th class="th-left">#</th>
+                  <th class="th-left">Stock</th>
+                  <th>Type</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                  <th>Balance After</th>
+                  <th class="th-left">Date &amp; Time</th>
+                </tr>
+              </thead>
+              <tbody id="history-body"></tbody>
+            </table>
+            <div class="empty-state" id="history-empty">
+              <span class="empty-icon">≡</span>
+              <p>No trades yet.</p>
+              <p class="empty-sub">Your executed trades will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="modal-title">Buy Stock</h2>
+          <p class="modal-subtitle" id="modal-subtitle">AAPL · Apple Inc.</p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-price-row">
+          <div>
+            <span class="modal-label">Current Price</span>
+            <span class="modal-price" id="modal-price">$0.00</span>
+          </div>
+          <div>
+            <span class="modal-label">Available Cash</span>
+            <span class="modal-price" id="modal-cash">$0.00</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Quantity</label>
+          <div class="qty-control">
+            <button onclick="changeQty(-1)">−</button>
+            <input type="number" id="modal-qty" value="1" min="1" oninput="updateModalTotal()" />
+            <button onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="modal-total-row">
+          <span>Total Cost</span>
+          <span id="modal-total" class="modal-total-val">$0.00</span>
+        </div>
+        <div id="modal-error" class="auth-error hidden"></div>
+        <button class="btn-primary modal-confirm" id="modal-confirm-btn" onclick="confirmTrade()">CONFIRM BUY</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
